@@ -12,7 +12,6 @@ int main(void) {
     
     inicializar_graficos();
     inicializar_juego(&estado);
-    inicializar_matriz(&estado.matriz, &estado); // Inicializar matriz
     
     // Para integración: conectar_servidor();
     
@@ -24,7 +23,7 @@ int main(void) {
         aplicar_movimiento(&estado, &controles);
         
         // Verificar colisiones
-        verificar_colisiones_matriz(&estado, &estado.matriz);
+        verificar_colisiones_matriz(&estado); // Solo el estado, la matriz está dentro
         
         // Para integración:
         // enviar_estado(&estado);

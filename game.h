@@ -4,6 +4,17 @@
 #include "raylib.h"
 #include "config.h"
 
+// Tipos de elementos en la matriz
+#define TIPO_VACIO 0
+#define TIPO_PLATAFORMA 1
+#define TIPO_LIANA 2
+#define TIPO_AGUA 3
+#define TIPO_FRUTA 4
+#define TIPO_COCODRILO 5
+#define TIPO_JUGADOR 6
+#define TIPO_PADRE 7
+#define TIPO_MARIO 8
+
 typedef enum {
     ESTADO_SUELO,
     ESTADO_AGARRADO_LIANA,
@@ -31,14 +42,14 @@ typedef struct {
 
 typedef struct {
     float x, y;
-    int tipo;  // 0: rojo, 1: azul
+    int tipo;
     bool activo;
 } Cocodrilo;
 
 typedef struct {
     float x, y;
     int puntos;
-    int tipo;  // 0: naranja, 1: celeste, 2: roja, 3: banano
+    int tipo;
     bool activo;
 } Fruta;
 
@@ -55,10 +66,9 @@ typedef struct {
     Color color_superior, color_inferior;
 } Isla;
 
-
 typedef struct {
-    int tipo;  // 0: vacío, 1: plataforma, 2: liana, 3: agua, 4: fruta, 5: cocodrilo, 6: jugador
-    int datos_extra; // para tipo de fruta, tipo de cocodrilo, etc.
+    int tipo;
+    int datos_extra;
 } CeldaMatriz;
 
 typedef struct {
@@ -73,7 +83,7 @@ typedef struct {
     Liana lianas[20];
     Plataforma plataforma_superior;
     Isla islas[10];
-    MatrizJuego matriz; // ← AGREGAR ESTA LÍNEA
+    MatrizJuego matriz;
     int num_cocodrilos;
     int num_frutas;
     int num_lianas;
@@ -81,13 +91,26 @@ typedef struct {
     bool juego_activo;
 } EstadoJuego;
 
-
+// Declaraciones de funciones
 void inicializar_juego(EstadoJuego *estado);
-bool esta_en_isla(Jugador *jugador, Isla islas[], int num_islas);
-int liana_mas_cercana(Jugador *jugador, Liana lianas[], int num_lianas);
-void verificar_colisiones(EstadoJuego *estado);
-bool esta_en_superficie(Jugador *jugador, EstadoJuego *estado);
 void inicializar_matriz(MatrizJuego *matriz, EstadoJuego *estado);
-void verificar_colisiones_matriz(EstadoJuego *estado, MatrizJuego *matriz);
+void actualizar_matriz_desde_estado(EstadoJuego *estado);
+void verificar_colisiones_matriz(EstadoJuego *estado);
+
+// Funciones de utilidad para matriz
+void coordenadas_a_matriz(float x, float y, int *fila, int *columna);
+void matriz_a_coordenadas(int fila, int columna, float *x, float *y);
+bool celda_es_solida(int tipo_celda);
+bool celda_es_liana(int tipo_celda);
+bool celda_es_mortal(int tipo_celda);
+
+// Funciones de movimiento basadas en matriz
+bool esta_en_superficie_matriz(Jugador *jugador, MatrizJuego *matriz);
+int liana_mas_cercana_matriz(Jugador *jugador, MatrizJuego *matriz);
+
+// Funciones obsoletas (mantener temporalmente para compilación)
+bool esta_en_superficie(Jugador *jugador, EstadoJuego *estado);
+int liana_mas_cercana(Jugador *jugador, Liana lianas[], int num_lianas);
+bool esta_sobre_isla(Jugador *jugador, Isla islas[], int num_islas);
 
 #endif

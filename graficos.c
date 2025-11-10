@@ -15,16 +15,18 @@ void cerrar_graficos(void) {
 
 void dibujar_jugador(Jugador *j) {
     if (j->activo) {
-        DrawRectangle(j->x - JUGADOR_SIZE/2, j->y - JUGADOR_SIZE/2, 
-                     JUGADOR_SIZE, JUGADOR_SIZE, COLOR_JUGADOR);
+        // CAMBIAR: Usar JUGADOR_HITBOX para ser consistente con la lógica
+        DrawRectangle(j->x - JUGADOR_HITBOX/2, j->y - JUGADOR_HITBOX/2, 
+                     JUGADOR_HITBOX, JUGADOR_HITBOX, COLOR_JUGADOR);
     }
 }
 
 void dibujar_cocodrilo(Cocodrilo *c) {
     if (c->activo) {
         Color color = (c->tipo == 0) ? COLOR_COCODRILO_ROJO : COLOR_COCODRILO_AZUL;
-        DrawRectangle(c->x - COCODRILO_SIZE/2, c->y - COCODRILO_SIZE/2,
-                     COCODRILO_SIZE, COCODRILO_SIZE, color);
+        // CAMBIAR: Usar COCODRILO_HITBOX
+        DrawRectangle(c->x - COCODRILO_HITBOX/2, c->y - COCODRILO_HITBOX/2,
+                     COCODRILO_HITBOX, COCODRILO_HITBOX, color);
     }
 }
 
@@ -49,12 +51,13 @@ void dibujar_fruta(Fruta *f) {
                 color_fruta = GREEN;
         }
         
-        DrawRectangle(f->x - FRUTA_SIZE/2, f->y - FRUTA_SIZE/2,
-                     FRUTA_SIZE, FRUTA_SIZE, color_fruta);
+        // CAMBIAR: Usar FRUTA_HITBOX
+        DrawRectangle(f->x - FRUTA_HITBOX/2, f->y - FRUTA_HITBOX/2,
+                     FRUTA_HITBOX, FRUTA_HITBOX, color_fruta);
         
         // Opcional: pequeño detalle para diferenciar
-        DrawRectangle(f->x - FRUTA_SIZE/4, f->y - FRUTA_SIZE/4,
-                     FRUTA_SIZE/2, FRUTA_SIZE/2, (Color){color_fruta.r/2, color_fruta.g/2, color_fruta.b/2, 255});
+        DrawRectangle(f->x - FRUTA_HITBOX/4, f->y - FRUTA_HITBOX/4,
+                     FRUTA_HITBOX/2, FRUTA_HITBOX/2, (Color){color_fruta.r/2, color_fruta.g/2, color_fruta.b/2, 255});
     }
 }
 
@@ -90,10 +93,14 @@ void dibujar_padre(Padre *p) {
 }
 
 void dibujar_isla(Isla *isla) {
-    // Parte superior verde
-    DrawRectangle(isla->x, isla->y - 10, isla->ancho, 10, isla->color_superior);
-    // Parte inferior café
-    DrawRectangle(isla->x, isla->y, isla->ancho, 10, isla->color_inferior);
+    // PROBLEMA: En la lógica la isla tiene altura 0 (solo posición Y), pero aquí dibujas 20px de altura
+    // CAMBIAR: Dibujar solo la superficie (parte verde) donde el jugador puede pararse
+    // La parte café es solo decorativa debajo
+    
+    // Parte superior verde (donde el jugador se para)
+    DrawRectangle(isla->x, isla->y - 8, isla->ancho, 8, isla->color_superior);
+    // Parte inferior café (decoración)
+    DrawRectangle(isla->x, isla->y, isla->ancho, 5, isla->color_inferior);
 }
 
 void dibujar_mario(void) {
@@ -109,12 +116,12 @@ void dibujar_escena(EstadoJuego *estado) {
     // Dibujar elementos en orden
     dibujar_agua();
     
-    // Islas
+    // Islas (primero las bases)
     for (int i = 0; i < estado->num_islas; i++) {
         dibujar_isla(&estado->islas[i]);
     }
     
-    // Lianas
+    // Lianas (sobre las islas)
     for (int i = 0; i < estado->num_lianas; i++) {
         DrawRectangle(estado->lianas[i].x - LIANA_WIDTH/2, estado->lianas[i].y_inicio,
                      LIANA_WIDTH, estado->lianas[i].y_fin - estado->lianas[i].y_inicio, COLOR_LIANA);
@@ -137,5 +144,45 @@ void dibujar_escena(EstadoJuego *estado) {
     dibujar_jugador(&estado->jugador);
     dibujar_ui(estado);
     
+    // DEBUG: Descomenta la siguiente línea para ver hitboxes y grid
+    // dibujar_debug(estado);
+    
     EndDrawing();
+}
+
+void dibujar_debug(EstadoJuego *estado) {
+    // Dibujar hitboxes y puntos de colisión (solo para debug)
+    #ifdef DEBUG
+    // Hitbox del jugador
+    DrawRectangleLines(estado->jugador.x - JUGADOR_HITBOX/2, 
+                      estado->jugador.y - JUGADOR_HITBOX/2,
+                      JUGADOR_HITBOX, JUGADOR_HITBOX, RED);
+    
+    // Punto central del jugador
+    DrawCircle(estado->jugador.x, estado->jugador.y, 2, BLUE);
+    
+    // Dibujar matriz de colisiones
+    for (int f = 0; f < MATRIZ_FILAS; f++) {
+        for (int c = 0; c < MATRIZ_COLUMNAS; c++) {
+            int x = c * TAMANIO_CELDA;
+            int y = f * TAMANIO_CELDA;
+            
+            if (estado->matriz.celdas[f][c].tipo != TIPO_VACIO) {
+                Color grid_color;
+                switch (estado->matriz.celdas[f][c].tipo) {
+                    case TIPO_PLATAFORMA: grid_color = (Color){255, 255, 0, 80}; break; // Amarillo transparente
+                    case TIPO_LIANA: grid_color = (Color){255, 255, 255, 80}; break;    // Blanco transparente
+                    case TIPO_AGUA: grid_color = (Color){0, 0, 255, 80}; break;         // Azul transparente
+                    case TIPO_COCODRILO: grid_color = (Color){255, 0, 0, 80}; break;    // Rojo transparente
+                    case TIPO_FRUTA: grid_color = (Color){0, 255, 0, 80}; break;        // Verde transparente
+                    default: grid_color = (Color){128, 128, 128, 50};
+                }
+                DrawRectangle(x, y, TAMANIO_CELDA, TAMANIO_CELDA, grid_color);
+            }
+            
+            // Líneas de la grid
+            DrawRectangleLines(x, y, TAMANIO_CELDA, TAMANIO_CELDA, (Color){50, 50, 50, 50});
+        }
+    }
+    #endif
 }
