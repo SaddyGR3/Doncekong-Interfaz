@@ -57,32 +57,29 @@ void iniciar_salto(Jugador *j, Controles *ctrl) {
     printf("DEBUG: Salto iniciado - velY=%.1f\n", j->velocidad_y);
 }
 
-// ==================== FUNCIÓN CRÍTICA CORREGIDA ====================
+// ==================== FUNCION IMPORTANTE ==================== TODO corregir para version final
 bool intentar_agarrar_liana(Jugador *j, EstadoJuego *estado) {
     int liana_cercana = liana_mas_cercana_matriz(j, &estado->matriz);
     if (liana_cercana != -1) {
-        // Calcular posición exacta de la liana
+        // Calcula posicion exacta de la liana
         float x_liana = liana_cercana * TAMANIO_CELDA + TAMANIO_CELDA / 2;
         
-        // Verificar distancia horizontal ACTUAL del jugador
+        // Verifica distancia horizontal ACTUAL del jugador
         float distancia_horizontal = fabs(j->x - x_liana);
         
         printf("Liana en columna %d, posición X=%.1f, jugador X=%.1f, distancia=%.1f (límite=%.1f)\n", 
                liana_cercana, x_liana, j->x, distancia_horizontal, DISTANCIA_AGARRE_LIANA);
         
-        // ⚠️ CORRECCIÓN CRÍTICA: Solo agarrar si YA está suficientemente cerca
-        // NO ajustar la posición automáticamente
+        //Solo agarrar si YA está suficientemente cerca
+        //NO ajustar la posicion automaticamente
         if (distancia_horizontal <= DISTANCIA_AGARRE_LIANA) {
             j->estado = ESTADO_AGARRADO_LIANA;
-            
-            // ⚠️ IMPORTANTE: NO mover al jugador, mantener su posición actual
-            // Solo cambiar el estado y resetear velocidades
-            
+            // Solo cambiar el estado y resetear velocidades   
             j->velocidad_y = 0;
             j->velocidad_x = 0;
             j->liana_actual = liana_cercana;
             
-            printf("¡Agarró liana! Manteniendo posición: (%.1f,%.1f)\n", j->x, j->y);
+            printf("Se agarro la liana, Manteniendo posicion: (%.1f,%.1f)\n", j->x, j->y);
             return true;
         } else {
             printf("Liana demasiado lejana para agarrar: %.1f > %.1f\n", 
@@ -113,15 +110,15 @@ bool cambiar_liana(Jugador *j, EstadoJuego *estado, float direccion) {
     printf("Intentando cambiar de liana: %d -> %d\n", col_actual, nueva_columna);
     
     if (nueva_columna >= 0 && nueva_columna < MATRIZ_COLUMNAS) {
-        // Verificar si hay liana en la nueva columna en un rango vertical
+        // Verifica si hay liana en la nueva columna en un rango vertical
         for (int f_offset = -2; f_offset <= 2; f_offset++) {
             int fila_check = fila_actual + f_offset;
             if (fila_check < 0 || fila_check >= MATRIZ_FILAS) continue;
             
             if (estado->matriz.celdas[fila_check][nueva_columna].tipo == TIPO_LIANA) {
-                // ⚠️ CORRECCIÓN: Cambio suave entre lianas
+                //Cambio suave entre lianas
                 float x_nueva_liana = nueva_columna * TAMANIO_CELDA + TAMANIO_CELDA / 2;
-                j->x = x_nueva_liana; // Cambio suave a la nueva posición
+                j->x = x_nueva_liana; //Cambio suave a la nueva posicion
                 j->liana_actual = nueva_columna;
                 printf("Cambió a liana en columna %d\n", nueva_columna);
                 return true;
@@ -142,7 +139,7 @@ void manejar_estado_suelo(EstadoJuego *estado, Controles *ctrl) {
     
     if (!sigue_en_isla && !en_fondo) {
         j->estado = ESTADO_CAYENDO;
-        printf("DEBUG: Salió de la isla. Cambiando a CAYENDO\n");
+        printf("DEBUG: Salio de la isla. Cambiando a CAYENDO\n");
         return;
     }
     
@@ -155,7 +152,7 @@ void manejar_estado_suelo(EstadoJuego *estado, Controles *ctrl) {
     if (ctrl->arriba && !ctrl->espacio) {
         printf("Intentando agarrar liana desde suelo...\n");
         if (intentar_agarrar_liana(j, estado)) {
-            printf("¡Agarró liana desde el suelo!\n");
+            printf("¡Agarro liana desde el suelo!\n");
             return;
         } else {
             printf("No hay lianas cercanas desde suelo\n");
@@ -177,11 +174,11 @@ void manejar_estado_aereo(EstadoJuego *estado, Controles *ctrl) {
         j->estado = ESTADO_CAYENDO;
     }
     
-    // Intentar agarrar liana en cualquier momento en el aire
+    //Intentar agarrar liana en cualquier momento en el aire
     if (ctrl->arriba) {
         printf("Intentando agarrar liana en aire...\n");
         if (intentar_agarrar_liana(j, estado)) {
-            printf("¡Agarró liana en el aire!\n");
+            printf("¡Agarro liana en el aire!\n");
         }
     }
 }
@@ -189,7 +186,7 @@ void manejar_estado_aereo(EstadoJuego *estado, Controles *ctrl) {
 void manejar_estado_liana(EstadoJuego *estado, Controles *ctrl) {
     Jugador *j = &estado->jugador;
     
-    printf("=== EN LIANA - Posición: (%.1f,%.1f) ===\n", j->x, j->y);
+    printf("=== EN LIANA - Posicion: (%.1f,%.1f) ===\n", j->x, j->y);
     
     j->velocidad_x = 0;
     j->velocidad_y = 0;
@@ -209,11 +206,11 @@ void manejar_estado_liana(EstadoJuego *estado, Controles *ctrl) {
     // Límites verticales
     if (j->y < TAMANIO_CELDA * 3) {
         j->y = TAMANIO_CELDA * 3;
-        printf("Llegó al tope superior\n");
+        printf("Llego al tope superior\n");
     }
     if (j->y > SCREEN_HEIGHT - AGUA_HEIGHT - JUGADOR_HITBOX - 10) {
         j->y = SCREEN_HEIGHT - AGUA_HEIGHT - JUGADOR_HITBOX - 10;
-        printf("Llegó al tope inferior\n");
+        printf("Llego al tope inferior\n");
     }
     
     // Salto desde liana
@@ -253,7 +250,7 @@ void aplicar_fisica_jugador(Jugador *jugador) {
 }
 
 void limitar_movimiento_jugador(Jugador *j) {
-    // Límites horizontales
+    // Limites horizontales
     if (j->x < JUGADOR_HITBOX/2) {
         j->x = JUGADOR_HITBOX/2;
         j->velocidad_x = 0;
@@ -263,7 +260,7 @@ void limitar_movimiento_jugador(Jugador *j) {
         j->velocidad_x = 0;
     }
     
-    // Límites verticales
+    // Limites verticales
     if (j->y < JUGADOR_HITBOX/2) {
         j->y = JUGADOR_HITBOX/2;
         j->velocidad_y = 0;
@@ -275,7 +272,7 @@ void limitar_movimiento_jugador(Jugador *j) {
         j->estado = ESTADO_SUELO;
     }
     
-    printf("DEBUG Límites: Jugador en (%.1f, %.1f)\n", j->x, j->y);
+    printf("DEBUG Limites: Jugador en (%.1f, %.1f)\n", j->x, j->y);
 }
 
 void verificar_aterrizaje(Jugador *j, EstadoJuego *estado) {
@@ -294,20 +291,19 @@ void verificar_aterrizaje(Jugador *j, EstadoJuego *estado) {
         j->puede_saltar = true;
         
         if (en_isla) {
-            printf("DEBUG: Aterrizó en isla\n");
+            printf("DEBUG: Aterrizo en isla\n");
         } else {
-            printf("DEBUG: Tocó el fondo de la pantalla\n");
+            printf("DEBUG: Toco el fondo de la pantalla\n");
         }
     }
     
     if (!j->en_suelo && j->estado == ESTADO_SUELO) {
         j->estado = ESTADO_CAYENDO;
-        printf("DEBUG: Dejó de estar en suelo. Cambiando a CAYENDO\n");
+        printf("DEBUG: Dejo de estar en suelo. Cambiando a CAYENDO\n");
     }
 }
 
-// ==================== FUNCIÓN PRINCIPAL ====================
-
+// ==================== FUNCION PRINCIPAL ====================
 void aplicar_movimiento(EstadoJuego *estado, Controles *ctrl) {
     Jugador *j = &estado->jugador;
     

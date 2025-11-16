@@ -1,19 +1,18 @@
 #include "conexion.h"
 #include <stdio.h>
 
-// Versión temporal - simula comunicación
+//Version temporal para simular comunicacion con servidor
 bool conectar_servidor(void) {
     printf("Conectando al servidor... (SIMULADO)\n");
     return true;
 }
 
 void enviar_estado(EstadoJuego *estado) {
-    // Enviará controles y recibirá estado actual del juego
-    // Por ahora solo simulación
+    // Enviara controles y recibira estado actual del juego
 }
 
 void recibir_actualizacion(EstadoJuego *estado) {
-    // Recibirá estado actualizado del servidor
+    // Recibira estado actualizado del servidor
     // Por ahora solo mantiene el estado local
 }
 

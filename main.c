@@ -1,40 +1,28 @@
-#include "C:/raylib/raylib/src/raylib.h"
-#include "raylib.h" 
-#include "game.h"
-#include "config.h"
 #include "graficos.h"
+#include "mapa.h"
 #include "controles.h"
-#include "conexion.h"
+#include "game.h"
 
 int main(void) {
     EstadoJuego estado;
-    Controles controles = {0};
+    Controles ctrl = {0};
     
     inicializar_graficos();
+    cargar_mapa(&mapa_global);
     inicializar_juego(&estado);
+    configurar_mapa_completo(&mapa_global, &estado); // Sincronizar debug
     
-    // Para integración: conectar_servidor();
-    
-    while (!WindowShouldClose() && estado.juego_activo) {
-        // Actualizar controles
-        actualizar_controles(&controles);
+    while (!WindowShouldClose()) {
+        actualizar_controles(&ctrl);
+        aplicar_movimiento(&estado, &ctrl);
+        verificar_colisiones_matriz(&estado);
+        actualizar_matriz_desde_estado(&estado);
         
-        // Aplicar movimiento - CORREGIDO: ahora pasa el estado completo
-        aplicar_movimiento(&estado, &controles);
-        
-        // Verificar colisiones
-        verificar_colisiones_matriz(&estado); // Solo el estado, la matriz está dentro
-        
-        // Para integración:
-        // enviar_estado(&estado);
-        // recibir_actualizacion(&estado);
-        
-        // Dibujar
-        dibujar_escena(&estado);
+        // Dibujar con sprites y debug
+        dibujar_escena_completa(&estado, &mapa_global, &sprites_global);
     }
     
-    // Para integración: desconectar_servidor();
+    descargar_mapa(&mapa_global);
     cerrar_graficos();
-    
     return 0;
 }
